@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Арифметический Тренажер</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px 0;
+            margin: 0;
+        }
+        #startButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin-top: 30px;
+            cursor: pointer;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+        }
+        #game {
+            display: none;
+            padding: 20px;
+        }
+        #timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #problem {
+            font-size: 36px;
+            margin: 40px 0 20px;
+            transition: color 0.3s;
+        }
+        #result {
+            font-size: 24px;
+            margin: 20px;
+            height: 30px;
+        }
+        /* Строка отображения ввода */
+        #answerDisplay {
+            font-size: 28px;
+            margin-bottom: 20px;
+            min-height: 34px;
+        }
+        /* Кастомная клавиатура */
+        #keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .key {
+            padding: 20px;
+            font-size: 24px;
+            background-color: #ddd;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .key:active {
+            background-color: #bbb;
+        }
+        /* Кнопка "Очистить" */
+        #clearButton {
+            grid-column: span 3;
+            padding: 15px;
+            font-size: 20px;
+            background-color: #ff6666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #clearButton:active {
+            background-color: #ff4c4c;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            margin-top: 40px;
+        }
+    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="apple-touch-icon" href="icon.png" />
+
+</head>
+<body>
+
+<h1>Арифметический Тренажер</h1>
+
+<button id="startButton">Старт</button>
+
+<div id="game">
+    <div id="timer">Время: 10:00</div>
+    <div id="problem"></div>
+    <div id="answerDisplay"></div>
+    <div id="result"></div>
+    <div id="keypad">
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+        <button class="key">0</button>
+        <button id="clearButton">Очистить</button>
+    </div>
+</div>
+
+<footer>
+    &copy; 2023 Арифметический Тренажер
+</footer>
+
+<script>
+    let timeLeft = 600; // 10 минут в секундах
+    let timerInterval;
+    let currentAnswer;
+    let userAnswer = '';
+
+    const startButton = document.getElementById('startButton');
+    const gameDiv = document.getElementById('game');
+    const problemDiv = document.getElementById('problem');
+    const answerDisplay = document.getElementById('answerDisplay');
+    const resultDiv = document.getElementById('result');
+    const timerDiv = document.getElementById('timer');
+    const keypad = document.getElementById('keypad');
+    const clearButton = document.getElementById('clearButton');
+
+    startButton.addEventListener('click', startGame);
+    keypad.addEventListener('click', handleKeyPress);
+    clearButton.addEventListener('click', clearAnswer);
+
+    function startGame() {
+        startButton.style.display = 'none';
+        gameDiv.style.display = 'block';
+        generateProblem();
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(function() {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerDiv.textContent = 'Время: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function generateProblem() {
+        resultDiv.textContent = '';
+        problemDiv.style.color = 'black';
+        userAnswer = '';
+        updateAnswerDisplay();
+
+        const operators = ['+', '-', '*', '/'];
+        const operator = operators[Math.floor(Math.random() * operators.length)];
+
+        let num1, num2;
+
+        if (operator === '+' || operator === '-') {
+            num1 = Math.floor(Math.random() * 90) + 10; // от 10 до 99
+            num2 = Math.floor(Math.random() * 90) + 10;
+            if (operator === '-' && num2 > num1) {
+                [num1, num2] = [num2, num1]; // чтобы результат не был отрицательным
+            }
+        } else {
+            num1 = Math.floor(Math.random() * 9) + 2; // от 2 до 10
+            num2 = Math.floor(Math.random() * 9) + 2;
+            if (operator === '/') {
+                num1 = num1 * num2; // чтобы деление было без остатка
+            }
+        }
+
+        problemDiv.textContent = `${num1} ${operator} ${num2} =`;
+        currentAnswer = eval(`${num1} ${operator} ${num2}`);
+        if (operator === '/') {
+            currentAnswer = Math.floor(currentAnswer);
+        }
+    }
+
+    function handleKeyPress(event) {
+        const target = event.target;
+        if (!target.classList.contains('key')) return;
+
+        const key = target.textContent;
+
+        // Добавляем цифру к текущему ответу
+        userAnswer += key;
+        updateAnswerDisplay();
+        checkAnswer();
+    }
+
+    function clearAnswer() {
+        userAnswer = '';
+        updateAnswerDisplay();
+        resultDiv.textContent = '';
+        problemDiv.style.color = 'black';
+    }
+
+    function updateAnswerDisplay() {
+        answerDisplay.textContent = `Ваш ответ: ${userAnswer}`;
+    }
+
+    function checkAnswer() {
+        // Проверяем только если длина введенного ответа равна длине правильного ответа
+        if (parseInt(userAnswer) === currentAnswer) {
+            problemDiv.style.color = 'green';
+            resultDiv.textContent = 'Верно!';
+            resultDiv.style.color = 'green';
+            setTimeout(generateProblem, 1000);
+        } else if (userAnswer.length >= currentAnswer.toString().length) {
+            problemDiv.style.color = 'red';
+            resultDiv.textContent = 'Неверно, попробуй еще раз.';
+            resultDiv.style.color = 'red';
+        }
+    }
+
+    function endGame() {
+        gameDiv.innerHTML = '<h2>Время вышло!</h2>';
+    }
+</script>
+
+</body>
+</html>
